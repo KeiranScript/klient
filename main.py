@@ -10,7 +10,7 @@ import pyperclip
 app = typer.Typer()
 console = Console()
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "https://kuuichi.xyz"
 
 
 def upload_file(file_path: Path, api_key: str):
