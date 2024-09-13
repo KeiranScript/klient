@@ -15,7 +15,8 @@ BASE_URL = "https://kuuichi.xyz"
 
 def upload_file(file_path: Path, api_key: str):
     url = f"{BASE_URL}/"
-    params = {"api_key": api_key}
+    # Ensure this header is exactly what the server expects
+    headers = {"Authorization": api_key}
 
     if not file_path.is_file():
         console.print(
@@ -25,7 +26,8 @@ def upload_file(file_path: Path, api_key: str):
     try:
         with open(file_path, "rb") as f:
             files = {"file": (file_path.name, f, "multipart/form-data")}
-            response = requests.post(url, params=params, files=files)
+            response = requests.post(
+                url, headers=headers, files=files)  # Use headers
 
         if response.status_code == 200:
             data = response.json()
@@ -77,18 +79,18 @@ def upload(
 
 
 @app.command()
-def list_files(api_key: Optional[str] = typer.Option(None,
-                                                     help="Your API key")):
+def list_files(api_key: Optional[str] = typer.Option(None, help="Your API key")):
     if not api_key:
         console.print(
             "[bold red]Error:[/bold red] API key is required.", style="red")
         raise typer.Exit(code=1)
 
     url = f"{BASE_URL}/files"
-    params = {"api_key": api_key}
+    headers = {"Authorization": api_key}  # Set the API key in headers
 
     try:
-        response = requests.get(url, params=params)
+        # Use headers instead of params
+        response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             files_data = response.json().get("files", [])
@@ -97,8 +99,7 @@ def list_files(api_key: Optional[str] = typer.Option(None,
             else:
                 display_files(files_data)
         else:
-            console.print(f"[bold red]Error {
-                          response.status_code}:[/bold red] {response.text}",
+            console.print(f"[bold red]Error {response.status_code}:[/bold red] {response.text}",
                           style="red")
     except requests.exceptions.RequestException as e:
         console.print(f"[bold red]Error:[/bold red] {e}", style="red")
