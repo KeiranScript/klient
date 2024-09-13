@@ -54,8 +54,8 @@ def display_success(data, file_type):
 
     console.print(table)
     console.print(
-        f"[blue]Delete URL has been copied to your clipboard![/blue]")
-    pyperclip.copy(data['delete_url'])  # Copy delete URL to clipboard as well
+        "[blue]URL copied to clipboard![/blue]")
+    pyperclip.copy(data['file_url'])  # Copy delete URL to clipboard as well
 
 
 def get_mime_type(file_path: Path) -> str:
