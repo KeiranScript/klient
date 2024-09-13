@@ -76,5 +76,55 @@ def upload(
     upload_file(file_path, api_key)
 
 
+@app.command()
+def list_files(api_key: Optional[str] = typer.Option(None,
+                                                     help="Your API key")):
+    if not api_key:
+        console.print(
+            "[bold red]Error:[/bold red] API key is required.", style="red")
+        raise typer.Exit(code=1)
+
+    url = f"{BASE_URL}/files"
+    params = {"api_key": api_key}
+
+    try:
+        response = requests.get(url, params=params)
+
+        if response.status_code == 200:
+            files_data = response.json().get("files", [])
+            if not files_data:
+                console.print("[yellow]No files found for the user.[/yellow]")
+            else:
+                display_files(files_data)
+        else:
+            console.print(f"[bold red]Error {
+                          response.status_code}:[/bold red] {response.text}",
+                          style="red")
+    except requests.exceptions.RequestException as e:
+        console.print(f"[bold red]Error:[/bold red] {e}", style="red")
+        raise typer.Exit(code=1)
+
+
+def display_files(files_data):
+    table = Table(title="[green]User Files[/green]")
+
+    table.add_column("File Name", style="cyan", no_wrap=True)
+    table.add_column("File URL", style="magenta")
+    table.add_column("File Size", style="green")
+    table.add_column("File Type", style="blue")
+    table.add_column("Date Uploaded", style="yellow")
+
+    for file in files_data:
+        table.add_row(
+            file['file_name'],
+            file['file_url'],
+            file['file-size'],
+            file['file-type'],
+            file['date-uploaded']
+        )
+
+    console.print(table)
+
+
 if __name__ == "__main__":
     app()
