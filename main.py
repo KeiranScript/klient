@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 from rich.console import Console
 from rich.table import Table
+import webbrowser
 import pyperclip
 
 app = typer.Typer()
@@ -165,7 +166,17 @@ def display_analytics(data):
 
 @app.command()
 def file_info(filename: str = typer.Argument(..., help="Name of the file to retrieve information about"),
-              api_key: Optional[str] = typer.Option(None, help="Your API key")):
+              api_key: Optional[str] = typer.Option(None, help="Your API key"),
+              copy_url: bool = typer.Option(
+                  False, "-u", help="Copy the file URL to the clipboard"),
+              copy_delete_url: bool = typer.Option(
+                  False, "-d", help="Copy the deletion URL to the clipboard"),
+              open_delete_url: bool = typer.Option(
+                  False, "-D", help="Open the deletion URL in the browser"),
+              copy_filename: bool = typer.Option(
+                  False, "-n", help="Copy the filename to the clipboard"),
+              verbose: bool = typer.Option(False, "-v", help="Display all file attributes in plain text")):
+
     if not api_key:
         console.print(
             "[bold red]Error:[/bold red] API key is required.", style="red")
@@ -179,7 +190,31 @@ def file_info(filename: str = typer.Argument(..., help="Name of the file to retr
         response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:
             data = response.json()
-            display_file_info(data)
+
+            # Handle verbose output
+            if verbose:
+                for key, value in data.items():
+                    console.print(f"{key}: {value}")
+            else:
+                display_file_info(data)
+
+            # Handle clipboard operations
+            if copy_url:
+                pyperclip.copy(data['file_url'])
+                console.print("[green]File URL copied to clipboard![/green]")
+
+            if copy_delete_url:
+                pyperclip.copy(data['delete_url'])
+                console.print("[green]Delete URL copied to clipboard![/green]")
+
+            if open_delete_url:
+                webbrowser.open(data['delete_url'])
+                console.print("[blue]Delete URL opened in the browser![/blue]")
+
+            if copy_filename:
+                pyperclip.copy(data['file_name'])
+                console.print("[green]Filename copied to clipboard![/green]")
+
         else:
             console.print(f"[bold red]Error {
                           response.status_code}:[/bold red] {response.text}", style="red")
