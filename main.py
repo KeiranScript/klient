@@ -163,5 +163,45 @@ def display_analytics(data):
     console.print(table)
 
 
+@app.command()
+def file_info(filename: str = typer.Argument(..., help="Name of the file to retrieve information about"),
+              api_key: Optional[str] = typer.Option(None, help="Your API key")):
+    if not api_key:
+        console.print(
+            "[bold red]Error:[/bold red] API key is required.", style="red")
+        raise typer.Exit(code=1)
+
+    url = f"{BASE_URL}/file_info"
+    headers = {"Authorization": api_key}
+    params = {"filename": filename}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            display_file_info(data)
+        else:
+            console.print(f"[bold red]Error {
+                          response.status_code}:[/bold red] {response.text}", style="red")
+    except requests.exceptions.RequestException as e:
+        console.print(f"[bold red]Error:[/bold red] {e}", style="red")
+        raise typer.Exit(code=1)
+
+
+def display_file_info(data):
+    table = Table(title="[green]File Information[/green]")
+    table.add_column("Attribute", style="cyan", no_wrap=True)
+    table.add_column("Details", style="magenta")
+    table.add_row("File Name", data['file_name'])
+    table.add_row("File URL", data['file_url'])
+    table.add_row("Delete URL", data['delete_url'])
+    table.add_row("File Size", data['file-size'])
+    table.add_row("File Type", data['file-type'])
+    table.add_row("Date Uploaded", data['date-uploaded'])
+    console.print(table)
+    console.print("[blue]URL copied to clipboard![/blue]")
+    pyperclip.copy(data['file_url'])
+
+
 if __name__ == "__main__":
     app()
