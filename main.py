@@ -106,7 +106,8 @@ def display_files(files_data):
     table.add_column("Date Uploaded", style="yellow")
 
     for file in files_data:
-        table.add_row(file['file_name'], file['file_url'], file.get('delete_url', 'N/A'),
+        delete_url = file.get('delete_url', 'N/A')
+        table.add_row(file['file_name'], file['file_url'], delete_url,
                       file['file-size'], file['file-type'], file['date-uploaded'])
     console.print(table)
 
