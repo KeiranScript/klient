@@ -10,7 +10,7 @@ import pyperclip
 app = typer.Typer()
 console = Console()
 
-BASE_URL = "https://kuuichi.xyz"
+BASE_URL = "http://localhost:8000"
 
 
 def upload_file(file_path: Path, api_key: str):
@@ -113,17 +113,11 @@ def display_files(files_data):
 
 
 @app.command()
-def info(api_key: Optional[str] = typer.Option(None, help="Your API key")):
-    if not api_key:
-        console.print(
-            "[bold red]Error:[/bold red] API key is required.", style="red")
-        raise typer.Exit(code=1)
-
+def info():
     url = f"{BASE_URL}/info"
-    headers = {"Authorization": api_key}
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
             table = Table(title="[green]Server Information[/green]")
@@ -139,6 +133,34 @@ def info(api_key: Optional[str] = typer.Option(None, help="Your API key")):
     except requests.exceptions.RequestException as e:
         console.print(f"[bold red]Error:[/bold red] {e}", style="red")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def analytics():
+    url = f"{BASE_URL}/analytics"
+
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            display_analytics(data)
+        else:
+            console.print(f"[bold red]Error {
+                          response.status_code}:[/bold red] {response.text}", style="red")
+    except requests.exceptions.RequestException as e:
+        console.print(f"[bold red]Error:[/bold red] {e}", style="red")
+        raise typer.Exit(code=1)
+
+
+def display_analytics(data):
+    table = Table(title="[green]Analytics[/green]")
+    table.add_column("Metric", style="cyan", no_wrap=True)
+    table.add_column("Value", style="magenta")
+    table.add_row("File Types", ', '.join(
+        f"{k}: {v}" for k, v in data['file_types'].items()))
+    table.add_row("User Uploads", ', '.join(
+        f"{k}: {v}" for k, v in data['user_uploads'].items()))
+    console.print(table)
 
 
 if __name__ == "__main__":
