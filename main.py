@@ -27,7 +27,7 @@ def upload_file(file_path: Path, api_key: str):
         with open(file_path, "rb") as f:
             files = {"file": (file_path.name, f, "multipart/form-data")}
             response = requests.post(
-                url, headers=headers, files=files, verify=False)
+                url, headers=headers, files=files)
 
         if response.status_code == 200:
             data = response.json()
